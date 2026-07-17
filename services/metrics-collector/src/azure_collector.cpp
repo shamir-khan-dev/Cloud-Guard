@@ -1,4 +1,5 @@
 #include "azure_collector.h"
+#include "system_monitor.h"
 #include <random>
 #include <ctime>
 
@@ -61,8 +62,8 @@ std::vector<ServerMetric> AzureCollector::collect_health(const std::string& host
     ServerMetric m;
     m.provider = "azure";
     m.hostname = hostname;
-    m.cpu_utilization = 38.0 * dis(gen); // Base CPU around 38%
-    m.ram_utilization = 55.0 * dis(gen); // Base RAM around 55%
+    m.cpu_utilization = get_physical_cpu_utilization();
+    m.ram_utilization = get_physical_ram_utilization();
     
     // Simulate active SSH hacking brute force 10% of the time
     if (hack_chance(gen) == 10) {

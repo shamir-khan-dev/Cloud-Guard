@@ -1,4 +1,5 @@
 #include "gcp_collector.h"
+#include "system_monitor.h"
 #include <random>
 #include <ctime>
 
@@ -61,8 +62,8 @@ std::vector<ServerMetric> GCPCollector::collect_health(const std::string& hostna
     ServerMetric m;
     m.provider = "gcp";
     m.hostname = hostname;
-    m.cpu_utilization = 32.0 * dis(gen); // Base CPU around 32%
-    m.ram_utilization = 48.0 * dis(gen); // Base RAM around 48%
+    m.cpu_utilization = get_physical_cpu_utilization();
+    m.ram_utilization = get_physical_ram_utilization();
     
     // Simulate active SSH hacking brute force 10% of the time
     if (hack_chance(gen) == 10) {

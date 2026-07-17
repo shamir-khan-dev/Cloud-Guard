@@ -1,4 +1,5 @@
 #include "aws_collector.h"
+#include "system_monitor.h"
 #include <random>
 #include <ctime>
 
@@ -63,8 +64,8 @@ std::vector<ServerMetric> AWSCollector::collect_health(const std::string& hostna
     ServerMetric m;
     m.provider = "aws";
     m.hostname = hostname;
-    m.cpu_utilization = 45.0 * dis(gen); // Base CPU around 45%
-    m.ram_utilization = 62.0 * dis(gen); // Base RAM around 62%
+    m.cpu_utilization = get_physical_cpu_utilization();
+    m.ram_utilization = get_physical_ram_utilization();
     
     // Simulate active SSH hacking brute force 10% of the time
     if (hack_chance(gen) == 10) {
