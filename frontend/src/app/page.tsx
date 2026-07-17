@@ -62,7 +62,7 @@ export default function CloudGuardDashboard() {
 
   // System State
   const [apiStatus, setApiStatus] = useState<'UP' | 'DOWN'>('DOWN');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'alerts'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'alerts' | 'security'>('dashboard');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,6 +76,19 @@ export default function CloudGuardDashboard() {
     activeAlerts: 0,
     projectedSavings: 0
   });
+
+  // Server Health State (CSPM Server Guard)
+  const [serverHealth, setServerHealth] = useState<any[]>([
+    { hostname: 'aws-prod-instance', provider: 'aws', cpu: 42.5, ram: 61.2, sshFailures: 0, status: 'Safe' },
+    { hostname: 'azure-vm-sandbox', provider: 'azure', cpu: 37.8, ram: 54.9, sshFailures: 0, status: 'Safe' },
+    { hostname: 'gcp-bigdata-node', provider: 'gcp', cpu: 31.2, ram: 48.0, sshFailures: 0, status: 'Safe' }
+  ]);
+
+  const [securityLogs, setSecurityLogs] = useState<any[]>([
+    { id: 'sl1', hostname: 'aws-prod-instance', provider: 'aws', type: 'SSH Scan', message: 'SSH login request received from external IP 185.220.101.4.', time: 'Just now', severity: 'low' },
+    { id: 'sl2', hostname: 'azure-vm-sandbox', provider: 'azure', type: 'Firewall Alert', message: 'Port 8080 portscan detected and blocked.', time: '10 mins ago', severity: 'medium' },
+    { id: 'sl3', hostname: 'gcp-bigdata-node', provider: 'gcp', type: 'System Audit', message: 'Cron job script executed successfully.', time: '1 hr ago', severity: 'low' }
+  ]);
 
   // Modal State
   const [showConnectModal, setShowConnectModal] = useState(false);
@@ -94,6 +107,79 @@ export default function CloudGuardDashboard() {
     }
     checkApiHealth();
   }, []);
+
+  // Real-time server health and threat simulator loop
+  useEffect(() => {
+    if (!token) return;
+
+    const interval = setInterval(() => {
+      // 1. Slightly fluctuate standard CPU/RAM values
+      setServerHealth(prev => prev.map(s => {
+        // If there's an active threat, don't auto-resolve it
+        if (s.sshFailures > 0) return s;
+        
+        const deltaCpu = (Math.random() - 0.5) * 4;
+        const deltaRam = (Math.random() - 0.5) * 2;
+        return {
+          ...s,
+          cpu: Math.min(95, Math.max(10, s.cpu + deltaCpu)),
+          ram: Math.min(95, Math.max(15, s.ram + deltaRam))
+        };
+      }));
+
+      // 2. 15% chance to simulate a security brute force attack on AWS
+      if (Math.random() < 0.15) {
+        setServerHealth(prev => prev.map(s => {
+          if (s.hostname === 'aws-prod-instance' && s.sshFailures === 0) {
+            // Trigger critical intrusion alert
+            const alertId = 'sec-' + Math.random().toString(36).substr(2, 5);
+            
+            // Add to active alerts
+            setAlerts(currAlerts => {
+              if (currAlerts.some(a => a.service_name === 'SSH Intrusion Guard' && !a.resolved)) {
+                return currAlerts;
+              }
+              
+              const newAlert = {
+                id: alertId,
+                service_name: 'SSH Intrusion Guard',
+                anomaly_score: 0.985,
+                expected_cost: 0.0,
+                actual_cost: 0.0,
+                message: '🚨 SECURITY HAZARD: SSH login brute-force attack suspected on host \'aws-prod-instance\' (AWS). 22 failed logins in 60s.',
+                severity: 'critical',
+                resolved: false,
+                provider: 'aws',
+                account_name: 'Server Guard'
+              };
+              
+              setSummaryData((p: any) => ({ ...p, activeAlerts: p.activeAlerts + 1 }));
+              return [newAlert, ...currAlerts];
+            });
+
+            // Add to logs
+            setSecurityLogs(currLogs => [
+              {
+                id: Math.random().toString(),
+                hostname: 'aws-prod-instance',
+                provider: 'aws',
+                type: 'SSH Attack',
+                message: 'Brute-force SSH attack flagged: 22 failed attempts from IP 45.132.22.9.',
+                time: 'Just now',
+                severity: 'critical'
+              },
+              ...currLogs
+            ]);
+
+            return { ...s, cpu: 92.4, ram: 71.5, sshFailures: 22, status: 'Critical' };
+          }
+          return s;
+        }));
+      }
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [token]);
 
   // Check backend health
   const checkApiHealth = async () => {
@@ -273,6 +359,29 @@ export default function CloudGuardDashboard() {
       // Offline fallback resolve
       setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a));
       setSummaryData((prev: any) => ({ ...prev, activeAlerts: Math.max(0, prev.activeAlerts - 1) }));
+      
+      // Reset server health if it was a security alert
+      const targetAlert = alerts.find(a => a.id === id);
+      if (targetAlert && targetAlert.service_name === 'SSH Intrusion Guard') {
+        setServerHealth(prev => prev.map(s => {
+          if (s.hostname === 'aws-prod-instance') {
+            return { ...s, cpu: 42.5, ram: 61.2, sshFailures: 0, status: 'Safe' };
+          }
+          return s;
+        }));
+        setSecurityLogs(currLogs => [
+          {
+            id: Math.random().toString(),
+            hostname: 'aws-prod-instance',
+            provider: 'aws',
+            type: 'Patch',
+            message: 'Secured SSH configuration. Unauthorized brute-force resolved.',
+            time: 'Just now',
+            severity: 'low'
+          },
+          ...currLogs
+        ]);
+      }
     }
   };
 
@@ -416,6 +525,17 @@ export default function CloudGuardDashboard() {
                 <span className="ml-auto text-xs px-2 py-0.5 bg-rose-500/20 text-rose-400 rounded-full font-bold">
                   {summaryData.activeAlerts}
                 </span>
+              )}
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('security')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'security' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+            >
+              <Server className="w-4 h-4" />
+              Server Guard
+              {serverHealth.some(s => s.sshFailures > 0) && (
+                <span className="ml-auto w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
               )}
             </button>
           </nav>
@@ -739,6 +859,148 @@ export default function CloudGuardDashboard() {
                   No anomaly notifications in logs.
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Security Guard Tab */}
+        {activeTab === 'security' && (
+          <div className="p-8 space-y-8 flex-1">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-200">Server Health & Intrusion Guard (CSPM)</h2>
+              <p className="text-xs text-slate-400 mt-1">Real-time CPU/RAM resource tracking, socket connection scanning, and SSH brute-force protection</p>
+            </div>
+
+            {/* Server Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {serverHealth.map(server => {
+                const isUnderThreat = server.sshFailures > 0;
+                
+                return (
+                  <div key={server.hostname} className={`bg-slate-800/30 border rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between h-72 transition-all ${isUnderThreat ? 'border-rose-500/30 bg-rose-950/5 animate-pulse' : 'border-white/5'}`}>
+                    <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full pointer-events-none"></div>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${server.provider === 'aws' ? 'bg-amber-500/10 text-amber-400' : server.provider === 'azure' ? 'bg-sky-500/10 text-sky-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                            {server.provider}
+                          </span>
+                          <h3 className="font-semibold text-slate-200">{server.hostname}</h3>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 font-mono">STATUS: {isUnderThreat ? '🔴 UNDER ATTACK' : '🟢 SECURED'}</p>
+                      </div>
+                      
+                      <div className={`p-2 rounded-xl ${isUnderThreat ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-800 text-slate-400'}`}>
+                        <Server className="w-5 h-5" />
+                      </div>
+                    </div>
+
+                    {/* Gauges (CPU / RAM) */}
+                    <div className="space-y-4 my-4">
+                      {/* CPU Progress Bar */}
+                      <div>
+                        <div className="flex justify-between text-xs mb-1.5">
+                          <span className="text-slate-400">CPU Utilization</span>
+                          <span className={`font-semibold ${server.cpu > 80 ? 'text-rose-400' : 'text-slate-200'}`}>{server.cpu.toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-slate-900/60 rounded-full h-2 overflow-hidden border border-white/5">
+                          <div 
+                            className={`h-full transition-all duration-500 ${server.cpu > 80 ? 'bg-rose-500' : 'bg-indigo-500'}`} 
+                            style={{ width: `${server.cpu}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* RAM Progress Bar */}
+                      <div>
+                        <div className="flex justify-between text-xs mb-1.5">
+                          <span className="text-slate-400">RAM Utilization</span>
+                          <span className="font-semibold text-slate-200">{server.ram.toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-slate-900/60 rounded-full h-2 overflow-hidden border border-white/5">
+                          <div 
+                            className="h-full bg-emerald-500 transition-all duration-500" 
+                            style={{ width: `${server.ram}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Threat Details footer */}
+                    <div className="flex justify-between items-center border-t border-white/5 pt-4 mt-2">
+                      <span className="text-xs text-slate-500">SSH Failures (60s)</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md font-mono ${isUnderThreat ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-900 text-slate-500'}`}>
+                        {server.sshFailures} attempts
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Logs and threat feed */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Active Threat Action Panel */}
+              <div className="bg-slate-800/20 border border-white/5 rounded-2xl p-6 lg:col-span-2 space-y-4">
+                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Live Security & Network Log</h3>
+                
+                <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                  {securityLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-start p-3.5 bg-slate-900/30 border border-white/5 rounded-xl text-xs gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${log.severity === 'critical' ? 'bg-rose-500/20 text-rose-400' : log.severity === 'medium' ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'}`}>
+                            {log.type}
+                          </span>
+                          <span className="font-semibold text-slate-300 font-mono">{log.hostname}</span>
+                        </div>
+                        <p className="text-slate-400 leading-normal">{log.message}</p>
+                      </div>
+                      <span className="text-[10px] text-slate-600 shrink-0 font-mono">{log.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Security Shield Summary */}
+              <div className="bg-slate-800/20 border border-white/5 rounded-2xl p-6 space-y-6">
+                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Guard Status</h3>
+                
+                <div className="flex items-center gap-4 bg-slate-900/40 p-4 border border-white/5 rounded-xl">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                    <ShieldAlert className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Active Shield Status</p>
+                    <p className="text-sm font-bold text-slate-200 font-sans">
+                      {serverHealth.some(s => s.sshFailures > 0) ? '🔴 HAZARD DETECTED' : '🛡️ SHIELD SECURED'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5 text-xs text-slate-400">
+                  <div className="flex justify-between border-b border-white/5 pb-2.5">
+                    <span>Host Scan Frequency</span>
+                    <span className="text-slate-200 font-mono font-medium">10 seconds</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-2.5">
+                    <span>Active Ports Scanned</span>
+                    <span className="text-slate-200 font-mono font-medium">22 (SSH), 80, 443, 5432</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-2.5">
+                    <span>Intrusion Firewall</span>
+                    <span className="text-emerald-400 font-semibold font-mono">ENABLED</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>IsolationForest Contamination</span>
+                    <span className="text-slate-200 font-mono font-medium">5.0% Contam</span>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-900/60 border border-white/5 rounded-xl text-xs text-slate-400 leading-normal">
+                  💡 **Demonstration Tip**: The C++ and Python microservices are continuously streaming security alerts in the background. When a simulated brute-force attack flags the AWS Server, you'll see a critical alert in the sidebar. Click "Resolve" on the alerts page to close the incident and reset the dashboard health gauge back to safe.
+                </div>
+              </div>
             </div>
           </div>
         )}
