@@ -16,12 +16,27 @@ struct CloudMetric {
     std::string timestamp;      // ISO 8601 string
 };
 
+struct ServerMetric {
+    std::string provider;       // 'aws' | 'azure' | 'gcp'
+    std::string hostname;
+    double cpu_utilization;
+    double ram_utilization;
+    int ssh_auth_failures;
+    std::string timestamp;
+};
+
 class MetricCollector {
 public:
     virtual ~MetricCollector() = default;
     
     // Pure virtual method to collect metrics from a specific cloud account
     virtual std::vector<CloudMetric> collect(const std::string& account_id) = 0;
+};
+
+class ServerHealthCollector {
+public:
+    virtual ~ServerHealthCollector() = default;
+    virtual std::vector<ServerMetric> collect_health(const std::string& hostname) = 0;
 };
 
 // Utility function to get current ISO 8601 timestamp in C++

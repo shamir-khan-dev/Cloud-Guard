@@ -24,6 +24,20 @@ std::string serialize_to_json(const CloudMetric& m) {
     return ss.str();
 }
 
+// Simple helper to serialize ServerMetric to JSON string
+std::string serialize_server_metric(const ServerMetric& m) {
+    std::ostringstream ss;
+    ss << "{"
+       << "\"provider\":\"" << m.provider << "\","
+       << "\"hostname\":\"" << m.hostname << "\","
+       << "\"cpuUtilization\":" << m.cpu_utilization << ","
+       << "\"ramUtilization\":" << m.ram_utilization << ","
+       << "\"sshAuthFailures\":" << m.ssh_auth_failures << ","
+       << "\"timestamp\":\"" << m.timestamp << "\""
+       << "}";
+    return ss.str();
+}
+
 int main() {
     std::cout << "🚀 CloudGuard Metrics Collector Agent starting up..." << std::endl;
     
@@ -78,6 +92,27 @@ int main() {
         for (const auto& m : gcp_metrics) {
             std::string json = serialize_to_json(m);
             producer.send_message("raw-metrics", m.provider, json);
+        }
+        
+        // 4. Collect and dispatch AWS Server Health
+        auto aws_health = aws.collect_health("aws-prod-instance");
+        for (const auto& h : aws_health) {
+            std::string json = serialize_server_metric(h);
+            producer.send_message("server-health", h.hostname, json);
+        }
+
+        // 5. Collect and dispatch Azure Server Health
+        auto azure_health = azure.collect_health("azure-vm-sandbox");
+        for (const auto& h : azure_health) {
+            std::string json = serialize_server_metric(h);
+            producer.send_message("server-health", h.hostname, json);
+        }
+
+        // 6. Collect and dispatch GCP Server Health
+        auto gcp_health = gcp.collect_health("gcp-bigdata-node");
+        for (const auto& h : gcp_health) {
+            std::string json = serialize_server_metric(h);
+            producer.send_message("server-health", h.hostname, json);
         }
         
         std::cout.flush();

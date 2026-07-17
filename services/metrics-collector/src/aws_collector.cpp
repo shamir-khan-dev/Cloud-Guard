@@ -50,3 +50,33 @@ std::vector<CloudMetric> AWSCollector::collect(const std::string& account_id) {
     
     return metrics;
 }
+
+std::vector<ServerMetric> AWSCollector::collect_health(const std::string& hostname) {
+    std::vector<ServerMetric> metrics;
+    std::string timestamp = get_current_timestamp();
+    
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.9, 1.1);
+    std::uniform_int_distribution<> hack_chance(1, 10);
+    
+    ServerMetric m;
+    m.provider = "aws";
+    m.hostname = hostname;
+    m.cpu_utilization = 45.0 * dis(gen); // Base CPU around 45%
+    m.ram_utilization = 62.0 * dis(gen); // Base RAM around 62%
+    
+    // Simulate active SSH hacking brute force 10% of the time
+    if (hack_chance(gen) == 10) {
+        std::uniform_int_distribution<> failures(12, 28);
+        m.ssh_auth_failures = failures(gen);
+        m.cpu_utilization += 35.0; // Hacking spikes CPU load!
+    } else {
+        m.ssh_auth_failures = 0;
+    }
+    
+    m.timestamp = timestamp;
+    metrics.push_back(m);
+    
+    return metrics;
+}
