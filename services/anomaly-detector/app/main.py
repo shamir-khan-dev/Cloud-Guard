@@ -21,6 +21,13 @@ class CostMetricPayload(BaseModel):
     usageAmount: float = 0.0
     usageUnit: str = "Units"
 
+class ServerMetricPayload(BaseModel):
+    provider: str
+    hostname: str
+    cpuUtilization: float
+    ramUtilization: float
+    sshAuthFailures: int
+
 # Kafka configuration
 KAFKA_BROKERS = os.getenv("KAFKA_BROKERS", "localhost:9092")
 MOCK_MODE = os.getenv("MOCK_MODE", "true").lower() == "true"
@@ -110,6 +117,52 @@ def predict_metric_anomaly(payload: CostMetricPayload):
         logger.error(f"Prediction error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/predict/server")
+def predict_server_anomaly(payload: ServerMetricPayload):
+    try:
+        # Run ML model prediction on multi-dimensional inputs [cpu, ram, ssh]
+        result = detector.predict_server(
+            provider=payload.provider,
+            hostname=payload.hostname,
+            cpu=payload.cpuUtilization,
+            ram=payload.ramUtilization,
+            ssh=payload.sshAuthFailures
+        )
+        
+        # If threat detected (e.g. brute force scan or high CPU), construct alert payload
+        if result["is_threat"]:
+            threat_type = result["threat_type"]
+            if threat_type == "ssh_brute_force":
+                msg = f"🚨 SECURITY WARNING: SSH login brute-force attack suspected on host '{payload.hostname}' ({payload.provider.uppercase()}). {payload.sshAuthFailures} failed login attempts in 60s."
+                severity = "critical"
+                service = "SSH Intrusion Guard"
+            else:
+                msg = f"⚠️ SYSTEM ALERT: Extreme CPU load spike detected on server '{payload.hostname}' ({payload.provider.uppercase()}). CPU is at {payload.cpuUtilization:.1f}%."
+                severity = "high"
+                service = "Server CPU Guard"
+                
+            alert = {
+                "provider": payload.provider,
+                "accountId": "server-guard",
+                "serviceName": service,
+                "anomalyScore": result["anomaly_score"],
+                "expectedCost": 0.0,
+                "actualCost": 0.0,
+                "message": msg,
+                "severity": severity
+            }
+            # Publish alert asynchronously to Kafka
+            publish_alert(alert)
+            
+        return {
+            "provider": payload.provider,
+            "hostname": payload.hostname,
+            "prediction": result
+        }
+    except Exception as e:
+        logger.error(f"Server health prediction error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Background thread to simulate consuming metrics stream from 'aggregated-costs'
 # in local mock mode, ensuring end-to-end flow is fully testable offline
 def simulate_kafka_consumer():
@@ -119,32 +172,49 @@ def simulate_kafka_consumer():
         # Occasionally generate a spike to trigger alerts and test the system
         time.sleep(30)
         try:
-            # We randomly simulate a cost metric event
+            # We randomly simulate a cost metric event or server health event
             import random
-            is_spike = random.random() < 0.25 # 25% chance of spike
-            cost = 1500.00 if is_spike else random.uniform(10.0, 50.0)
+            event_type = random.choice(["cost", "security"])
             
-            payload = CostMetricPayload(
-                provider="aws",
-                accountId="123456789012",
-                serviceName="EC2 Compute Engine",
-                costUsd=cost
-            )
-            
-            # Run prediction internally
-            result = detector.predict("aws", "EC2 Compute Engine", cost)
-            if result["is_anomaly"]:
-                alert = {
-                    "provider": "aws",
-                    "accountId": "123456789012",
-                    "serviceName": "EC2 Compute Engine",
-                    "anomalyScore": result["anomaly_score"],
-                    "expectedCost": result["expected_cost"],
-                    "actualCost": result["actual_cost"],
-                    "message": f"Real-time background alert: AWS EC2 Compute Engine cost spike. Actual cost: ${cost:.2f}.",
-                    "severity": "critical" if cost > 1000 else "high"
-                }
-                publish_alert(alert)
+            if event_type == "cost":
+                is_spike = random.random() < 0.3
+                cost = 1500.00 if is_spike else random.uniform(10.0, 50.0)
+                
+                # Run cost prediction
+                result = detector.predict("aws", "EC2 Compute Engine", cost)
+                if result["is_anomaly"]:
+                    alert = {
+                        "provider": "aws",
+                        "accountId": "123456789012",
+                        "serviceName": "EC2 Compute Engine",
+                        "anomalyScore": result["anomaly_score"],
+                        "expectedCost": result["expected_cost"],
+                        "actualCost": result["actual_cost"],
+                        "message": f"Real-time background alert: AWS EC2 Compute Engine cost spike. Actual cost: ${cost:.2f}.",
+                        "severity": "critical" if cost > 1000 else "high"
+                    }
+                    publish_alert(alert)
+            else:
+                # Simulate SSH Intrusion or CPU spike
+                is_hack = random.random() < 0.3
+                ssh_failures = random.randint(15, 30) if is_hack else 0
+                cpu = random.uniform(85.0, 99.0) if is_hack else random.uniform(10.0, 45.0)
+                
+                # Run server prediction
+                result = detector.predict_server("aws", "aws-prod-instance", cpu, 60.0, ssh_failures)
+                if result["is_threat"]:
+                    threat_type = result["threat_type"]
+                    alert = {
+                        "provider": "aws",
+                        "accountId": "server-guard",
+                        "serviceName": "SSH Intrusion Guard" if threat_type == "ssh_brute_force" else "Server CPU Guard",
+                        "anomalyScore": result["anomaly_score"],
+                        "expectedCost": 0.0,
+                        "actualCost": 0.0,
+                        "message": f"🚨 SECURITY WARNING: SSH login brute-force attack suspected on host 'aws-prod-instance' (AWS). {ssh_failures} failed login attempts in 60s." if threat_type == "ssh_brute_force" else f"⚠️ SYSTEM ALERT: Extreme CPU load spike detected on server 'aws-prod-instance' (AWS). CPU is at {cpu:.1f}%.",
+                        "severity": "critical" if threat_type == "ssh_brute_force" else "high"
+                    }
+                    publish_alert(alert)
         except Exception as e:
             logger.error(f"Consumer simulation warning: {e}")
 
