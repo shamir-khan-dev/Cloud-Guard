@@ -21,17 +21,70 @@ class EmailService {
     private lateinit var toEmail: String
 
     fun sendEmailNotification(alert: AlertMessage) {
-        val subject = "⚠️ [CloudGuard Anomaly] ${alert.severity.uppercase()} Spend Spike in ${alert.provider.uppercase()}"
+        val isSecurity = alert.accountId == "server-guard"
+        val subject = if (isSecurity) {
+            "🚨 [CloudGuard Security] ${alert.severity.uppercase()} Threat in ${alert.provider.uppercase()}"
+        } else {
+            "⚠️ [CloudGuard Anomaly] ${alert.severity.uppercase()} Spend Spike in ${alert.provider.uppercase()}"
+        }
         
+        val headerGradient = if (isSecurity) {
+            "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)"
+        } else {
+            "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)"
+        }
+        
+        val headerTitle = if (isSecurity) "CloudGuard Server Security Alert" else "CloudGuard Cost Alert"
+        
+        val tableRows = if (isSecurity) {
+            """
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 0; font-size: 14px;">Provider</td>
+                <td style="padding: 10px 0; font-size: 14px; text-align: right; font-weight: bold;">${alert.provider.uppercase()}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 0; font-size: 14px;">Security Service</td>
+                <td style="padding: 10px 0; font-size: 14px; text-align: right; color: #ef4444; font-weight: bold;">${alert.serviceName}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 0; font-size: 14px;">ML Threat Score</td>
+                <td style="padding: 10px 0; font-size: 14px; text-align: right; font-weight: bold;">${String.format("%.1f", alert.anomalyScore * 100)}%</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 0; font-size: 14px;">Incident Status</td>
+                <td style="padding: 10px 0; font-size: 14px; text-align: right; color: #ef4444; font-weight: bold;">🚨 UNRESOLVED</td>
+            </tr>
+            """.trimIndent()
+        } else {
+            """
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 0; font-size: 14px;">Provider / Scope</td>
+                <td style="padding: 10px 0; font-size: 14px; text-align: right; font-weight: bold;">${alert.provider.uppercase()} (${alert.accountId})</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 0; font-size: 14px;">Actual Bill Cost</td>
+                <td style="padding: 10px 0; font-size: 14px; text-align: right; color: #ef4444; font-weight: bold;">$${String.format("%.2f", alert.actualCost)}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 0; font-size: 14px;">Expected Baseline</td>
+                <td style="padding: 10px 0; font-size: 14px; text-align: right; font-weight: bold;">$${String.format("%.2f", alert.expectedCost)}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 10px 0; font-size: 14px;">ML Confidence Score</td>
+                <td style="padding: 10px 0; font-size: 14px; text-align: right; font-weight: bold;">${String.format("%.1f", alert.anomalyScore * 100)}%</td>
+            </tr>
+            """.trimIndent()
+        }
+
         val htmlContent = """
             <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; color: #1e293b;">
-                <div style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); padding: 24px; text-align: center; color: white;">
-                    <h2 style="margin: 0; font-size: 22px;">CloudGuard Cost Alert</h2>
-                    <p style="margin: 4px 0 0 0; opacity: 0.85; font-size: 14px;">Real-time Multi-Cloud Cost Optimizer</p>
+                <div style="background: $headerGradient; padding: 24px; text-align: center; color: white;">
+                    <h2 style="margin: 0; font-size: 22px;">$headerTitle</h2>
+                    <p style="margin: 4px 0 0 0; opacity: 0.85; font-size: 14px;">Real-time Cloud Security & Cost Posture Manager</p>
                 </div>
                 <div style="padding: 24px;">
                     <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
-                        <h3 style="margin: 0 0 8px 0; color: #b91c1c; font-size: 16px;">Spike Detected: ${alert.serviceName}</h3>
+                        <h3 style="margin: 0 0 8px 0; color: #b91c1c; font-size: 16px;">Flagged: ${alert.serviceName}</h3>
                         <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #7f1d1d;">${alert.message}</p>
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
@@ -39,25 +92,10 @@ class EmailService {
                             <td style="padding: 10px 0; font-weight: bold; font-size: 13px; color: #64748b; text-transform: uppercase;">Metric</td>
                             <td style="padding: 10px 0; font-weight: bold; font-size: 13px; color: #64748b; text-transform: uppercase; text-align: right;">Value</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 10px 0; font-size: 14px;">Provider / Scope</td>
-                            <td style="padding: 10px 0; font-size: 14px; text-align: right; font-weight: bold;">${alert.provider.uppercase()} (${alert.accountId})</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 10px 0; font-size: 14px;">Actual Bill Cost</td>
-                            <td style="padding: 10px 0; font-size: 14px; text-align: right; color: #ef4444; font-weight: bold;">$${String.format("%.2f", alert.actualCost)}</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 10px 0; font-size: 14px;">Expected Baseline</td>
-                            <td style="padding: 10px 0; font-size: 14px; text-align: right; font-weight: bold;">$${String.format("%.2f", alert.expectedCost)}</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td style="padding: 10px 0; font-size: 14px;">ML Confidence Score</td>
-                            <td style="padding: 10px 0; font-size: 14px; text-align: right; font-weight: bold;">${String.format("%.1f", alert.anomalyScore * 100)}%</td>
-                        </tr>
+                        $tableRows
                     </table>
                     <p style="font-size: 12px; color: #94a3b8; line-height: 1.5; margin: 0;">
-                        This anomaly detection alert was automatically triggered by the CloudGuard IsolationForest pipeline. Action is recommended to audit resource provisioning states.
+                        This detection alert was automatically triggered by the CloudGuard security pipeline. Action is recommended to secure instances.
                     </p>
                 </div>
             </div>
