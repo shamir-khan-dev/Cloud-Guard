@@ -112,20 +112,35 @@ export default function CloudGuardDashboard() {
   useEffect(() => {
     if (!token) return;
 
+    const fetchRealHardwareStats = async () => {
+      try {
+        const res = await axios.get('/api/system-health');
+        const { cpu, ram } = res.data;
+        if (cpu !== undefined && ram !== undefined) {
+          setServerHealth(prev => prev.map(s => {
+            // If under attack, CPU spikes to 92.4, keep it high
+            if (s.sshFailures > 0) return s;
+            
+            // Apply real physical hardware stats from laptop!
+            // We add a tiny random offset for each VM to make them look distinct
+            const offsetCpu = s.hostname === 'aws-prod-instance' ? 0 : s.hostname === 'azure-vm-sandbox' ? -4 : 3;
+            const offsetRam = s.hostname === 'aws-prod-instance' ? 0 : s.hostname === 'azure-vm-sandbox' ? -6 : 4;
+            
+            return {
+              ...s,
+              cpu: Math.min(99, Math.max(1, cpu + offsetCpu)),
+              ram: Math.min(99, Math.max(1, ram + offsetRam))
+            };
+          }));
+        }
+      } catch (err) {
+        console.warn("Failed to fetch real host hardware statistics:", err);
+      }
+    };
+
+    // Poll every 3 seconds for fast real-time feedback
     const interval = setInterval(() => {
-      // 1. Slightly fluctuate standard CPU/RAM values
-      setServerHealth(prev => prev.map(s => {
-        // If there's an active threat, don't auto-resolve it
-        if (s.sshFailures > 0) return s;
-        
-        const deltaCpu = (Math.random() - 0.5) * 4;
-        const deltaRam = (Math.random() - 0.5) * 2;
-        return {
-          ...s,
-          cpu: Math.min(95, Math.max(10, s.cpu + deltaCpu)),
-          ram: Math.min(95, Math.max(15, s.ram + deltaRam))
-        };
-      }));
+      fetchRealHardwareStats();
 
       // 2. 15% chance to simulate a security brute force attack on AWS
       if (Math.random() < 0.15) {
@@ -176,7 +191,7 @@ export default function CloudGuardDashboard() {
           return s;
         }));
       }
-    }, 6000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [token]);
