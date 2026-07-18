@@ -34,7 +34,7 @@ import {
   Cell
 } from 'recharts';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://cloud-guard-raw6.onrender.com/api';
 
 // --- CURATED COLOR SYSTEM ---
 // Background: #0f172a (Slate 900)
