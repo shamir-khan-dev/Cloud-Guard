@@ -5,7 +5,8 @@
       "framework": "nextjs"
     },
     "anomaly-detector": {
-      "root": "services/anomaly-detector"
+      "root": "services/anomaly-detector",
+      "entrypoint": "app/main.py"
     }
   },
   "rewrites": [
