@@ -7,6 +7,10 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:h2}
 
+app:
+  jwtSecret: ${JWT_SECRET:9a4f2c8d3e5f1b7a6c0d8e4f5a3b2c1d9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b}
+  jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000} # 24 hours
+
 ---
 spring:
   config:
@@ -63,7 +67,3 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-
-app:
-  jwtSecret: ${JWT_SECRET:9a4f2c8d3e5f1b7a6c0d8e4f5a3b2c1d9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b}
-  jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000} # 24 hours
