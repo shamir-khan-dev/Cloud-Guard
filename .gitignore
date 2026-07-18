@@ -80,3 +80,8 @@ Thumbs.db
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Environment secrets - NEVER commit these
+.env
+.env.local
+.env.production
