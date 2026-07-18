@@ -6,7 +6,7 @@
     },
     "anomaly-detector": {
       "root": "services/anomaly-detector",
-      "entrypoint": "app/main.py"
+      "entrypoint": "index.py"
     }
   },
   "rewrites": [
