@@ -1,0 +1,27 @@
+{
+  "services": {
+    "frontend": {
+      "root": "frontend",
+      "framework": "nextjs"
+    },
+    "anomaly-detector": {
+      "root": "services/anomaly-detector"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/anomaly-detector(/.*)?",
+      "destination": {
+        "type": "service",
+        "service": "anomaly-detector"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "frontend"
+      }
+    }
+  ]
+}
