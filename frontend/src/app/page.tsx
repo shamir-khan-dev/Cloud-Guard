@@ -498,9 +498,9 @@ export default function CloudGuardDashboard() {
 
   // Render Dashboard
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col md:flex-row w-full overflow-x-hidden">
       {/* Mobile Sticky Top Navigation Header */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900/90 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
+      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900/90 backdrop-blur-md border-b border-white/5 sticky top-0 z-50 w-full">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
             <ShieldAlert className="w-4 h-4 text-white" />
@@ -526,22 +526,104 @@ export default function CloudGuardDashboard() {
         </div>
       </header>
 
-      {/* Mobile Slide-Over Drawer Backdrop */}
+      {/* Mobile Navigation Drawer & Backdrop (Rendered ONLY on mobile when open) */}
       {mobileSidebarOpen && (
-        <div 
-          onClick={() => setMobileSidebarOpen(false)}
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
-        />
+        <>
+          <div 
+            onClick={() => setMobileSidebarOpen(false)}
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-40 md:hidden"
+          />
+          <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-white/10 p-6 flex flex-col justify-between md:hidden shadow-2xl">
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
+                    <ShieldAlert className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-lg font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                    CloudGuard
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className="p-2 text-slate-400 hover:text-white rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <nav className="space-y-1.5">
+                <button 
+                  onClick={() => { setActiveTab('dashboard'); setMobileSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'dashboard' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Overview
+                </button>
+
+                <button 
+                  onClick={() => { setActiveTab('accounts'); setMobileSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'accounts' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                >
+                  <Cloud className="w-4 h-4" />
+                  Cloud Accounts
+                  <span className="ml-auto text-xs px-2 py-0.5 bg-slate-800 rounded-full text-slate-400">
+                    {accounts.length}
+                  </span>
+                </button>
+
+                <button 
+                  onClick={() => { setActiveTab('alerts'); setMobileSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'alerts' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Anomaly Alerts
+                  {summaryData.activeAlerts > 0 && (
+                    <span className="ml-auto text-xs px-2 py-0.5 bg-rose-500/20 text-rose-400 rounded-full font-bold">
+                      {summaryData.activeAlerts}
+                    </span>
+                  )}
+                </button>
+
+                <button 
+                  onClick={() => { setActiveTab('security'); setMobileSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'security' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                >
+                  <Server className="w-4 h-4" />
+                  Server Guard
+                  {serverHealth.some(s => s.sshFailures > 0) && (
+                    <span className="ml-auto w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+                  )}
+                </button>
+              </nav>
+            </div>
+
+            <div className="space-y-4 pt-6 border-t border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-indigo-400 font-bold border border-white/5">
+                  {userEmail ? userEmail.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-xs text-slate-400">Logged in as</p>
+                  <p className="text-sm font-semibold truncate text-slate-200">{userEmail}</p>
+                </div>
+              </div>
+              
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 bg-slate-800/40 border border-white/5 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20 text-slate-400 text-xs font-semibold py-2.5 rounded-xl transition-all"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sign Out
+              </button>
+            </div>
+          </aside>
+        </>
       )}
 
-      {/* Desktop Sidebar & Mobile Drawer Overlay */}
-      <aside className={`
-        fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-white/5 p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out
-        ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        ${mobileSidebarOpen ? 'flex' : 'hidden md:flex'}
-      `}>
+      {/* Desktop Sidebar (ALWAYS Hidden on Mobile, ONLY Displayed on md: and above) */}
+      <aside className="hidden md:flex flex-col w-64 flex-shrink-0 bg-slate-900/60 border-r border-white/5 p-6 justify-between min-h-screen">
         <div className="space-y-8">
-          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
               <ShieldAlert className="w-5 h-5 text-white" />
@@ -551,10 +633,9 @@ export default function CloudGuardDashboard() {
             </span>
           </div>
 
-          {/* Nav Links */}
           <nav className="space-y-1">
             <button 
-              onClick={() => { setActiveTab('dashboard'); setMobileSidebarOpen(false); }}
+              onClick={() => setActiveTab('dashboard')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'dashboard' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
             >
               <TrendingUp className="w-4 h-4" />
@@ -562,7 +643,7 @@ export default function CloudGuardDashboard() {
             </button>
 
             <button 
-              onClick={() => { setActiveTab('accounts'); setMobileSidebarOpen(false); }}
+              onClick={() => setActiveTab('accounts')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'accounts' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
             >
               <Cloud className="w-4 h-4" />
@@ -573,7 +654,7 @@ export default function CloudGuardDashboard() {
             </button>
 
             <button 
-              onClick={() => { setActiveTab('alerts'); setMobileSidebarOpen(false); }}
+              onClick={() => setActiveTab('alerts')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'alerts' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
             >
               <AlertTriangle className="w-4 h-4" />
@@ -586,7 +667,7 @@ export default function CloudGuardDashboard() {
             </button>
 
             <button 
-              onClick={() => { setActiveTab('security'); setMobileSidebarOpen(false); }}
+              onClick={() => setActiveTab('security')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'security' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
             >
               <Server className="w-4 h-4" />
@@ -598,7 +679,6 @@ export default function CloudGuardDashboard() {
           </nav>
         </div>
 
-        {/* User profile footer */}
         <div className="space-y-4 pt-6 border-t border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center text-indigo-400 font-bold border border-white/5">
