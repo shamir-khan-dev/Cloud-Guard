@@ -19,7 +19,9 @@ import {
   Trash2, 
   ChevronRight, 
   Server,
-  Zap
+  Zap,
+  Menu,
+  X
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -63,6 +65,7 @@ export default function CloudGuardDashboard() {
   // System State
   const [apiStatus, setApiStatus] = useState<'UP' | 'DOWN'>('DOWN');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'alerts' | 'security'>('dashboard');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -495,9 +498,48 @@ export default function CloudGuardDashboard() {
 
   // Render Dashboard
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900/60 border-r border-white/5 p-6 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#0f172a] text-slate-100 flex flex-col md:flex-row">
+      {/* Mobile Sticky Top Navigation Header */}
+      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900/90 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
+            <ShieldAlert className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-base font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            CloudGuard
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium border ${apiStatus === 'UP' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+            <Server className="w-3 h-3" />
+            {apiStatus}
+          </div>
+
+          <button 
+            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+            className="p-2 text-slate-300 hover:text-white bg-slate-800/80 border border-white/10 rounded-xl transition-all"
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Slide-Over Drawer Backdrop */}
+      {mobileSidebarOpen && (
+        <div 
+          onClick={() => setMobileSidebarOpen(false)}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
+        />
+      )}
+
+      {/* Desktop Sidebar & Mobile Drawer Overlay */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-white/5 p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out
+        ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        ${mobileSidebarOpen ? 'flex' : 'hidden md:flex'}
+      `}>
         <div className="space-y-8">
           {/* Logo */}
           <div className="flex items-center gap-3">
@@ -512,7 +554,7 @@ export default function CloudGuardDashboard() {
           {/* Nav Links */}
           <nav className="space-y-1">
             <button 
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => { setActiveTab('dashboard'); setMobileSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'dashboard' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
             >
               <TrendingUp className="w-4 h-4" />
@@ -520,7 +562,7 @@ export default function CloudGuardDashboard() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('accounts')}
+              onClick={() => { setActiveTab('accounts'); setMobileSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'accounts' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
             >
               <Cloud className="w-4 h-4" />
@@ -531,7 +573,7 @@ export default function CloudGuardDashboard() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('alerts')}
+              onClick={() => { setActiveTab('alerts'); setMobileSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'alerts' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
             >
               <AlertTriangle className="w-4 h-4" />
@@ -544,7 +586,7 @@ export default function CloudGuardDashboard() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('security')}
+              onClick={() => { setActiveTab('security'); setMobileSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'security' ? 'bg-indigo-500/10 text-indigo-400 border-l-2 border-indigo-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
             >
               <Server className="w-4 h-4" />
@@ -580,8 +622,8 @@ export default function CloudGuardDashboard() {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* Top Header */}
-        <header className="h-16 border-b border-white/5 px-8 flex items-center justify-between bg-slate-900/20 backdrop-blur-md">
+        {/* Desktop Top Header */}
+        <header className="hidden md:flex h-16 border-b border-white/5 px-8 items-center justify-between bg-slate-900/20 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-semibold text-slate-200 capitalize">
               {activeTab === 'dashboard' ? 'System Overview' : activeTab}
@@ -608,7 +650,7 @@ export default function CloudGuardDashboard() {
 
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
-          <div className="p-8 space-y-8 flex-1">
+          <div className="p-4 md:p-8 space-y-6 md:space-y-8 flex-1">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-slate-800/30 border border-white/5 rounded-2xl p-6 relative overflow-hidden">
