@@ -111,90 +111,54 @@ export default function CloudGuardDashboard() {
     checkApiHealth();
   }, []);
 
-  // Real-time server health and threat simulator loop
+  // Real-time server health tracking (Live OS System Sampling)
   useEffect(() => {
     if (!token) return;
 
     const fetchRealHardwareStats = async () => {
       try {
         const res = await axios.get('/api/system-health');
-        const { cpu, ram } = res.data;
+        const { cpu, ram, hostname, platform } = res.data;
         if (cpu !== undefined && ram !== undefined) {
-          setServerHealth(prev => prev.map(s => {
-            // If under attack, CPU spikes to 92.4, keep it high
-            if (s.sshFailures > 0) return s;
-            
-            // Apply real physical hardware stats from laptop!
-            // We add a tiny random offset for each VM to make them look distinct
-            const offsetCpu = s.hostname === 'aws-prod-instance' ? 0 : s.hostname === 'azure-vm-sandbox' ? -4 : 3;
-            const offsetRam = s.hostname === 'aws-prod-instance' ? 0 : s.hostname === 'azure-vm-sandbox' ? -6 : 4;
-            
-            return {
-              ...s,
-              cpu: Math.min(99, Math.max(1, cpu + offsetCpu)),
-              ram: Math.min(99, Math.max(1, ram + offsetRam))
-            };
-          }));
+          const formattedCpu = parseFloat(cpu.toFixed(1));
+          const formattedRam = parseFloat(ram.toFixed(1));
+
+          setServerHealth([
+            { 
+              hostname: hostname ? `${hostname} (Host Server)` : 'Local Machine / Server', 
+              provider: 'aws', 
+              cpu: formattedCpu, 
+              ram: formattedRam, 
+              sshFailures: 0, 
+              status: formattedCpu > 85 ? 'High Load' : 'Safe',
+              platform: platform || 'x64'
+            },
+            { 
+              hostname: 'azure-vm-worker', 
+              provider: 'azure', 
+              cpu: Math.min(95, Math.max(1, parseFloat((formattedCpu * 0.85).toFixed(1)))), 
+              ram: Math.min(95, Math.max(1, parseFloat((formattedRam * 0.90).toFixed(1)))), 
+              sshFailures: 0, 
+              status: 'Safe' 
+            },
+            { 
+              hostname: 'gcp-bigdata-node', 
+              provider: 'gcp', 
+              cpu: Math.min(95, Math.max(1, parseFloat((formattedCpu * 0.70).toFixed(1)))), 
+              ram: Math.min(95, Math.max(1, parseFloat((formattedRam * 0.80).toFixed(1)))), 
+              sshFailures: 0, 
+              status: 'Safe' 
+            }
+          ]);
         }
       } catch (err) {
         console.warn("Failed to fetch real host hardware statistics:", err);
       }
     };
 
-    // Poll every 3 seconds for fast real-time feedback
-    const interval = setInterval(() => {
-      fetchRealHardwareStats();
-
-      // 2. 15% chance to simulate a security brute force attack on AWS
-      if (Math.random() < 0.15) {
-        setServerHealth(prev => prev.map(s => {
-          if (s.hostname === 'aws-prod-instance' && s.sshFailures === 0) {
-            // Trigger critical intrusion alert
-            const alertId = 'sec-' + Math.random().toString(36).substr(2, 5);
-            
-            // Add to active alerts
-            setAlerts(currAlerts => {
-              if (currAlerts.some(a => a.service_name === 'SSH Intrusion Guard' && !a.resolved)) {
-                return currAlerts;
-              }
-              
-              const newAlert = {
-                id: alertId,
-                service_name: 'SSH Intrusion Guard',
-                anomaly_score: 0.985,
-                expected_cost: 0.0,
-                actual_cost: 0.0,
-                message: '🚨 SECURITY HAZARD: SSH login brute-force attack suspected on host \'aws-prod-instance\' (AWS). 22 failed logins in 60s.',
-                severity: 'critical',
-                resolved: false,
-                provider: 'aws',
-                account_name: 'Server Guard'
-              };
-              
-              setSummaryData((p: any) => ({ ...p, activeAlerts: p.activeAlerts + 1 }));
-              return [newAlert, ...currAlerts];
-            });
-
-            // Add to logs
-            setSecurityLogs(currLogs => [
-              {
-                id: Math.random().toString(),
-                hostname: 'aws-prod-instance',
-                provider: 'aws',
-                type: 'SSH Attack',
-                message: 'Brute-force SSH attack flagged: 22 failed attempts from IP 45.132.22.9.',
-                time: 'Just now',
-                severity: 'critical'
-              },
-              ...currLogs
-            ]);
-
-            return { ...s, cpu: 92.4, ram: 71.5, sshFailures: 22, status: 'Critical' };
-          }
-          return s;
-        }));
-      }
-    }, 3000);
+    // Poll real hardware stats every 3 seconds
+    fetchRealHardwareStats();
+    const interval = setInterval(fetchRealHardwareStats, 3000);
 
     return () => clearInterval(interval);
   }, [token]);
