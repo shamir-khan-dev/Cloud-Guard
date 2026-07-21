@@ -82,8 +82,14 @@ CloudGuard/
 - GCC / G++ (C++ 17 support)
 - Scala / SBT
 
-### Running the Infrastructure
-Spin up the messaging bus, databases, and caches:
+### Running the Entire Polyglot System (1 Command)
+Build and spin up all 6 microservices, Kafka, PostgreSQL, and Redis in containers:
+```bash
+docker-compose -f docker-compose.full.yml up --build -d
+```
+
+### Running Infrastructure Only (For Local Dev)
+Spin up just the messaging bus, databases, and caches:
 ```bash
 docker-compose up -d
 ```
