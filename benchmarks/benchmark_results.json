@@ -1,0 +1,15 @@
+{
+  "num_samples": 500,
+  "server_telemetry": {
+    "p50_ms": 582.44,
+    "p95_ms": 867.24,
+    "p99_ms": 1003.05,
+    "throughput_ops_per_sec": 1.7
+  },
+  "billing_telemetry": {
+    "p50_ms": 507.93,
+    "p95_ms": 983.73,
+    "p99_ms": 1232.22,
+    "throughput_ops_per_sec": 1.8
+  }
+}
