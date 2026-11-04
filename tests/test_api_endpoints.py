@@ -92,3 +92,4 @@ class TestAnomalyDetectorAPI:
         """Malformed requests should be rejected with 422 Unprocessable Entity."""
         response = client.post("/predict", json={"invalidField": "corrupted"})
         assert response.status_code == 422
+

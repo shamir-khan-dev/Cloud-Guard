@@ -88,3 +88,6 @@ Thumbs.db
 
 .gradle/
 
+
+# Graphify cache
+graphify-out/

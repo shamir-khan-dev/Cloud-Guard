@@ -102,3 +102,4 @@ class TestServerHealthAndSecurityAnomalyDetector:
         assert res["is_threat"] is True
         assert res["threat_type"] == "cpu_utilization_spike"
         assert res["metrics"]["cpu"] == 98.5
+
