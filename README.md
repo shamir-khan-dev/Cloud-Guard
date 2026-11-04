@@ -8,6 +8,7 @@
 [![Apache Kafka](https://img.shields.io/badge/Broker-Apache_Kafka-231F20?style=flat-square&logo=apachekafka&logoColor=white)](https://kafka.apache.org/)
 [![Terraform](https://img.shields.io/badge/IaC-Terraform-7B42BC?style=flat-square&logo=terraform&logoColor=white)](https://www.terraform.io/)
 [![Next.js](https://img.shields.io/badge/Dashboard-Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![CI](https://github.com/shamir-khan-dev/Cloud-Guard/actions/workflows/ci.yml/badge.svg)](https://github.com/shamir-khan-dev/Cloud-Guard/actions)
 [![Tests](https://img.shields.io/badge/Tests-11%20Passed%20%7C%20100%25-brightgreen?style=flat-square&logo=pytest&logoColor=white)](tests/)
 [![Latency](https://img.shields.io/badge/Inference_p50-507ms-blue?style=flat-square)](benchmarks/benchmark_results.json)
 

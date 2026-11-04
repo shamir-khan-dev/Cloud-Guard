@@ -1,0 +1,41 @@
+name: CI / Automated Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run ML Anomaly Detection Test Suite & Benchmarks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi uvicorn scikit-learn numpy pandas pytest httpx
+
+      - name: Run Pytest Suite (11 Tests)
+        env:
+          MOCK_MODE: "true"
+          PYTHONPATH: services/anomaly-detector
+        run: |
+          pytest tests/ -v
+
+      - name: Run Anomaly Detector Benchmarks Verification
+        env:
+          MOCK_MODE: "true"
+          PYTHONPATH: services/anomaly-detector
+        run: |
+          python benchmarks/run_benchmark.py
