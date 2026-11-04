@@ -133,11 +133,11 @@ def predict_server_anomaly(payload: ServerMetricPayload):
         if result["is_threat"]:
             threat_type = result["threat_type"]
             if threat_type == "ssh_brute_force":
-                msg = f"🚨 SECURITY WARNING: SSH login brute-force attack suspected on host '{payload.hostname}' ({payload.provider.uppercase()}). {payload.sshAuthFailures} failed login attempts in 60s."
+                msg = f"🚨 SECURITY WARNING: SSH login brute-force attack suspected on host '{payload.hostname}' ({payload.provider.upper()}). {payload.sshAuthFailures} failed login attempts in 60s."
                 severity = "critical"
                 service = "SSH Intrusion Guard"
             else:
-                msg = f"⚠️ SYSTEM ALERT: Extreme CPU load spike detected on server '{payload.hostname}' ({payload.provider.uppercase()}). CPU is at {payload.cpuUtilization:.1f}%."
+                msg = f"⚠️ SYSTEM ALERT: Extreme CPU load spike detected on server '{payload.hostname}' ({payload.provider.upper()}). CPU is at {payload.cpuUtilization:.1f}%."
                 severity = "high"
                 service = "Server CPU Guard"
                 
