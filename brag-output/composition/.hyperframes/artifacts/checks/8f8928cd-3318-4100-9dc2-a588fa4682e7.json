@@ -1,0 +1,310 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 5,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "timeline_track_too_dense",
+        "severity": "warning",
+        "message": "Track 1 has 4 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "C:\\Users\\shami\\OneDrive\\Desktop\\Coding\\Full-Stack Projects\\CloudGuard\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move coherent scene groups into separate .html files under compositions/ and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene1\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene1",
+        "dataAttributes": {},
+        "sourceFile": "C:\\Users\\shami\\OneDrive\\Desktop\\Coding\\Full-Stack Projects\\CloudGuard\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene1\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene2\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene2",
+        "dataAttributes": {},
+        "sourceFile": "C:\\Users\\shami\\OneDrive\\Desktop\\Coding\\Full-Stack Projects\\CloudGuard\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene2\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene3\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene3",
+        "dataAttributes": {},
+        "sourceFile": "C:\\Users\\shami\\OneDrive\\Desktop\\Coding\\Full-Stack Projects\\CloudGuard\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene3\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      },
+      {
+        "code": "nested_structure_needs_subcomposition",
+        "severity": "warning",
+        "message": "<div id=\"scene4\"> is a timeline element that contains nested <div>. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.",
+        "selector": "#scene4",
+        "dataAttributes": {},
+        "sourceFile": "C:\\Users\\shami\\OneDrive\\Desktop\\Coding\\Full-Stack Projects\\CloudGuard\\brag-output\\composition\\index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Move <div id=\"scene4\"> and its contents into a sub-composition file and mount it with data-composition-src."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "duration": 18,
+    "samples": [
+      1,
+      3,
+      5,
+      7,
+      9,
+      11,
+      13,
+      15,
+      17
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 0,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      1,
+      5,
+      9,
+      13,
+      17
+    ],
+    "checked": 25,
+    "passed": 25
+  },
+  "craft": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 2,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "line_unread",
+        "severity": "warning",
+        "message": "\"Multi cloud architectures suffer silent cost spikes acros...\" (15 words) is on screen 3.46 s (±0.01 s), under its 3.75 s floor: hold it about 0.5 s + 0.3 s a word (5.00 s here) before it leaves or changes; see references/motion.md.",
+        "text": "Multi cloud architectures suffer silent cost spikes across AWS Azure and GCP without continuous telemetry.",
+        "selector": "#scene1 > p:nth-of-type(1)",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 487.02,
+          "y": 444.59,
+          "width": 945.95,
+          "height": 76.99999999999994
+        },
+        "time": 0,
+        "words": 15,
+        "seconds": 3.465,
+        "floorSeconds": 3.75,
+        "measured": [
+          {
+            "time": 0,
+            "opacity": 1,
+            "heightPx": 77
+          },
+          {
+            "time": 0.125,
+            "opacity": 1,
+            "heightPx": 77
+          },
+          {
+            "time": 0.25,
+            "opacity": 1,
+            "heightPx": 77
+          },
+          {
+            "time": 0.375,
+            "opacity": 1,
+            "heightPx": 77
+          },
+          {
+            "time": 3,
+            "opacity": 1,
+            "heightPx": 77
+          },
+          {
+            "time": 3.125,
+            "opacity": 1,
+            "heightPx": 77
+          },
+          {
+            "time": 3.25,
+            "opacity": 1,
+            "heightPx": 77
+          },
+          {
+            "time": 3.375,
+            "opacity": 0.83,
+            "heightPx": 77
+          },
+          {
+            "time": 3.5,
+            "opacity": null,
+            "heightPx": null
+          },
+          {
+            "time": 3.625,
+            "opacity": null,
+            "heightPx": null
+          },
+          {
+            "time": 3.75,
+            "opacity": null,
+            "heightPx": null
+          }
+        ]
+      },
+      {
+        "code": "text_below_floor",
+        "severity": "warning",
+        "message": "Type floor is 28 px (2.6% of the 1080 px short side, what a phone can read) and 4 text elements stay under it for 0.5 s or more, the smallest \"Agent\" at 24 px: set reading text to at least 28 px, or put data-layout-ignore on text that is texture rather than reading; see references/look.md.",
+        "text": "Agent",
+        "selector": "div.arch_flow > div:nth-of-type(1) > span:nth-of-type(1)",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 521.8,
+          "y": 660.03,
+          "width": 71.09,
+          "height": 30
+        },
+        "time": 3.625,
+        "times": [
+          3.625,
+          3.625,
+          3.625,
+          3.625
+        ],
+        "fontPx": 24,
+        "floorPx": 28,
+        "seconds": 3.875,
+        "elements": [
+          {
+            "selector": "div.arch_flow > div:nth-of-type(1) > span:nth-of-type(1)",
+            "text": "Agent",
+            "fontPx": 24,
+            "time": 3.625,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.arch_flow > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "Message Bus",
+            "fontPx": 24,
+            "time": 3.625,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.arch_flow > div:nth-of-type(3) > span:nth-of-type(1)",
+            "text": "Streaming",
+            "fontPx": 24,
+            "time": 3.625,
+            "seconds": 3.875
+          },
+          {
+            "selector": "div.arch_flow > div:nth-of-type(4) > span:nth-of-type(1)",
+            "text": "Database",
+            "fontPx": 24,
+            "time": 3.625,
+            "seconds": 3.875
+          }
+        ]
+      }
+    ],
+    "enabled": true,
+    "step": 0.125,
+    "samples": 144
+  },
+  "audio": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

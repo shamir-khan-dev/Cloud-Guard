@@ -1,0 +1,12 @@
+CloudGuard: Real Time Multi Cloud Security Telemetry & Automated Drift Remediation
+
+Engineered an automated cloud posture management and telemetry platform across AWS, Azure, and Google Cloud Platform. Detects configuration drift, audits IAM policy exposure, and triggers automated remediation handlers under 50 milliseconds.
+
+Key Architecture Capabilities:
+• Real time resource polling and multi cloud telemetry correlation
+• Sub 50ms configuration drift detection and policy evaluation engine
+• Deterministic rule based mitigation handlers across cloud APIs
+• Clean high contrast telemetry dashboard with zero synthetic AI gradients
+
+Tech Stack: FastAPI, Next.js 16, TypeScript, Tailwind CSS, Redis, Docker, Pytest
+Project Code: https://github.com/shamirkhan007/CloudGuard
