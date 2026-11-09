@@ -10,3 +10,4 @@ Key Architecture Capabilities:
 
 Tech Stack: FastAPI, Next.js 16, TypeScript, Tailwind CSS, Redis, Docker, Pytest
 Project Code: https://github.com/shamirkhan007/CloudGuard
+
